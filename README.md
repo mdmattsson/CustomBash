@@ -1,2 +1,5 @@
-# CustomBash
-Custom Bash Framework - aliases, cool git prompt, functions
+# CustomGitBash
+Custom Git Bash Framework
+* aliases
+* cool git prompt
+* useful os & git functions & scripts
