@@ -66,45 +66,70 @@ brepo()
 	
 	repo ${url} ${repo_name}
 
-	if [[ -f "CMakeLists.txt" ]]; then cmakeroot="../src"; fi
-	if [[ -f "build/CMakeLists.txt" ]]; then cmakeroot="../src/build"; fi
-	if [[ -f "build/install/CMakeLists.txt" ]]; then cmakeroot="../src/build/install"; fi
-	if [[ -f "install/CMakeLists.txt" ]]; then cmakeroot="../src/install"; fi
-	if [[ -f "install/build/CMakeLists.txt" ]]; then cmakeroot="../src/install/build"; fi
+	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
 
-	if [[ ${cmakeroot} != "" ]]; then
-	  pwd
+	if [[ "${cmakeroot}" != "" ]]; then
 	  echo -e "repo: building ${repo_name}"
 	  
 	  cd ../build
-	  rm -rf * && clear && cmake -G"Visual Studio 16 2019" -Ax64 -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
-	  #cmake --build . --target install
-	  pwd
-	  cmake --build .
+	  #rm -rf * && clear && cmake -Ax64 -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
+	  rm -rf * && clear && cmake ${cmakeroot}
+	  cmake --build . --config Debug
+	  cmake --build . --config Release
 	fi
 }
 
 rebuild()
 {
-	if [[ -f "CMakeCache" ]]; then 
+	if [[ -f "CMakeCache.txt" ]]; then 
 		rm -rf * && clear
 	fi
 	
-	if [[ -f "../src/CMakeLists.txt" ]]; then cmakeroot="../src"; fi
-	if [[ -f "../src/src/CMakeLists.txt" ]]; then cmakeroot="../src/src"; fi
-	if [[ -f "../src/build/CMakeLists.txt" ]]; then cmakeroot="../src/build"; fi
-	if [[ -f "../src/build/install/CMakeLists.txt" ]]; then cmakeroot="../src/build/install"; fi
-	if [[ -f "../src/install/CMakeLists.txt" ]]; then cmakeroot="../src/install"; fi
-	if [[ -f "../src/install/build/CMakeLists.txt" ]]; then cmakeroot="../src/install/build"; fi
+	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
 
-	if [[ ${cmakeroot} != "" ]]; then
-	  pwd
-	  echo -e "repo: building repo"
-	  
-	  rm -rf * && clear && cmake -G"Visual Studio 16 2019" -Ax64 -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
-	  #cmake --build . --target install
-	  pwd
-	  cmake --build .
+	local project_name=$(grep --ignore-case project ${cmakeroot}/CMakeLists.txt)
+	project_name=$(echo $project_name | awk -F '[{}]' '{print $2}')
+
+	if [[ "${cmakeroot}" != "" ]]; then
+	  echo -e "repo: building repo ${project_name}"
+	  #rm -rf * && clear && cmake -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
+	  cmake ${cmakeroot}
+	  cmake --build . --config Debug
+	  cmake --build . --config Release
+	fi
+}
+
+install()
+{
+	if [[ -f "CMakeCache.txt" ]]; then 
+		rm -rf * && clear
+	fi
+	
+	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
+
+	local project_name=$(grep --ignore-case project ${cmakeroot}/CMakeLists.txt)
+	project_name=$(echo $project_name | awk -F '[{}]' '{print $2}')
+
+	if [[ "${cmakeroot}" != "" ]]; then
+	  echo -e "repo: building repo ${project_name}"
+	  #rm -rf * && clear && cmake -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
+	  cmake ${cmakeroot}
+	  cmake --build . --target install --config Release
 	fi
 }
 
