@@ -36,7 +36,7 @@ readonly LOG_LEVEL_ERROR="ERROR"
 
 source ~/bashscripts/bs_aliases.sh
 source ~/bashscripts/bs_ssh_functions.sh
-source ~/bashscripts/bs_start_ssh_agent.sh
+#source ~/bashscripts/bs_start_ssh_agent.sh
 source ~/bashscripts/bs_misc_functions.sh
 source ~/bashscripts/bs_git_functions.sh
 source ~/bashscripts/bs_prompt.sh

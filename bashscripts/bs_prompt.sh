@@ -61,7 +61,8 @@ download_fonts()
 install_fonts()
 {
 	echo "Installing fonts..."
-	WinFontInstall.exe --move --user --folder ${PROMPT_FONT_DIR}	
+	local winpath = $(echo "$PROMPT_FONT_DIR" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+	WinFontInstall.exe --move --user --folder "${winpath}"
 }
 
 
@@ -75,7 +76,8 @@ set_mintty()
 
 cleanup()
 {
-	rm -rf "${PROMPT_TMP_DIR}"
+	echo "Cleaning up temp files..."
+	#rm -rf "${PROMPT_TMP_DIR}"
 }
 check_prompt_install()
 {
@@ -99,7 +101,7 @@ set_prompt()
 		echo "setting up bash prompt for first time use..."
 		check_prompt_install
 	fi
-	eval "$(posh --init --shell bash --config $PROMPT_DIR/michael.json)"
+	eval "$(posh --init --shell bash --config $PROMPT_THEME_DIR/michael.json)"
 	#git config --global color.ui true	
 	
 }

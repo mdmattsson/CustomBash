@@ -3,23 +3,38 @@
 # various git related functions
 #
 
+
+
+rebuild()
+{
+	[[ -f "CMakeCache.txt" ]] && rm -rf * && clear
+	
+	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
+	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
+	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
+
+	if [[ "${cmakeroot}" != "" ]]; then
+	  local project_name=$(grep --ignore-case project ${cmakeroot}/CMakeLists.txt)
+	  project_name=$(echo $project_name | awk -F '[{}]' '{print $2}')	  echo -e "repo: building repo ${project_name}"
+	  #rm -rf * && clear && cmake -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
+	  cmake ${cmakeroot}
+	  cmake --build . --config Debug
+	  cmake --build . --config Release
+	else
+	  echo "Cannot build.. may not be CMake project,  could not find CMakeLists.txt"
+	fi
+}
+
 repo()
 {
 	clear
-	if [ $# -eq 0 ]; then
-		echo -e "No URL supplied"
-		return
-	fi
-	
-	if [ $# -gt 0 ]; then
-		url="$1"
-		base_name=$(basename ${url})
-		repo_name=${base_name%.*}
-	fi
+	[[ $# -eq 0 ]] && echo -e "No URL supplied" && return	
+	[[ $# -gt 0 ]] && url=$1 && base_name=$(basename ${url}) && repo_name=${base_name%.*}
+	[[ $# -gt 1 ]] && repo_name=$2
 
-	if [ $# -gt 1 ]; then
-		repo_name="$2"
-	fi
 
 	echo -e "repo: downloading ${base_name}"
 	mkdir -p ${repo_name}/build
@@ -40,80 +55,20 @@ repo()
 
 	#find cmake root
 	cmakeroot=""
-	if [[ -f ".gitmodules" ]]; then
-		git submodule update --init --recursive
-	fi
+	[[ -f ".gitmodules" ]] && git submodule update --init --recursive
 }
 
 brepo()
 {
-	clear
-	if [ $# -eq 0 ]; then
-		echo -e "No URL supplied"
-		return
-	fi
-	
-	if [ $# -gt 0 ]; then
-		url="$1"
-		base_name=$(basename ${url})
-		repo_name=${base_name%.*}
-	fi
-
-	if [ $# -gt 1 ]; then
-		repo_name="$2"
-	fi
-
-	
-	repo ${url} ${repo_name}
-
-	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
-	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
-	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
-
-	if [[ "${cmakeroot}" != "" ]]; then
-	  echo -e "repo: building ${repo_name}"
-	  
-	  cd ../build
-	  #rm -rf * && clear && cmake -Ax64 -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
-	  rm -rf * && clear && cmake ${cmakeroot}
-	  cmake --build . --config Debug
-	  cmake --build . --config Release
-	fi
+	repo "$@"
+	cd ../build
+	rebuild
 }
 
-rebuild()
-{
-	if [[ -f "CMakeCache.txt" ]]; then 
-		rm -rf * && clear
-	fi
-	
-	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/CMakeLists.txt" ]] && cmakeroot=../src/build
-	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/build/install/CMakeLists.txt" ]] && cmakeroot=../src/build/install
-	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/CMakeLists.txt" ]] && cmakeroot=../src/install
-	[[ "${cmakeroot}" == "" ]] && [[ "../src/install/build/CMakeLists.txt" ]] && cmakeroot=../src/install/build
-
-	local project_name=$(grep --ignore-case project ${cmakeroot}/CMakeLists.txt)
-	project_name=$(echo $project_name | awk -F '[{}]' '{print $2}')
-
-	if [[ "${cmakeroot}" != "" ]]; then
-	  echo -e "repo: building repo ${project_name}"
-	  #rm -rf * && clear && cmake -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
-	  cmake ${cmakeroot}
-	  cmake --build . --config Debug
-	  cmake --build . --config Release
-	fi
-}
 
 install()
 {
-	if [[ -f "CMakeCache.txt" ]]; then 
-		rm -rf * && clear
-	fi
+	[[ -f "CMakeCache.txt" ]] && rm -rf * && clear
 	
 	[[ -f "../src/CMakeLists.txt" ]] && cmakeroot=../src
 	[[ "${cmakeroot}" == "" ]] && [[ -f "../src/src/CMakeLists.txt" ]] && cmakeroot=../src/src
