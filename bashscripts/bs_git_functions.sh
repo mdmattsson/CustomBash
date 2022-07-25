@@ -67,6 +67,9 @@ brepo()
 }
 
 
+#
+# param1: url of the git repo to privately clone
+# param2: url of the private repo to push to
 private_clone()
 {
 	clear
@@ -85,21 +88,10 @@ private_clone()
 		privrepo_name="$2"
 	fi
 
-	echo -e "repo: downloading ${base_name}"
-	mkdir -p ${repo_name}/build
-	mkdir -p ${repo_name}/src
-	
-	# add link to repo page
-	link_filename="${repo_name}/${repo_name}.URL"
-	echo "[InternetShortcut]" >${link_filename}
-	echo "URL=${url%.git}" >>${link_filename}
-	echo "IDList=">>${link_filename}
-	echo "HotKey=0">>${link_filename}
-	echo "IconFile=">>${link_filename}
-	echo "IconIndex=0">>${link_filename}
+	mkdir -p ${repo_name}
 	
 	#clone repo locally
-	cd ${repo_name}/src
+	cd ${repo_name}
 	git clone --bare ${url} .
 
 	#find cmake root
@@ -109,6 +101,14 @@ private_clone()
 	fi
 	
 	git push --mirror ${privrepo_name}
+	
+	# remove temp dir
+	cd ..
+	rm -rf ${repo_name}
+	
+	repo "${privrepo_name}"
+	git remote add upstream ${url}
+	git remote set-url --push upstream DISABLE	
 }
 
 
@@ -146,6 +146,51 @@ find_branch_diffs()
 	target_repo="$2"
 	git log origin/${source_repo}..origin/${target_repo} --oneline --no-merges
 }
+
+#get parent of current branch.
+#it is not a direct parent, it gives you nearest branch which from current branch is created created or shares same HEAD^
+git_parent()
+{
+	git log --pretty=format:'%D' HEAD^ | grep 'origin/' | head -n1 | sed 's@origin/@@' | sed 's@,.*@@'
+}
+
+
+
+
+# Will return the current branch name
+# Usage example: git pull origin $(current_branch)
+#
+function current_branch() {
+  ref=$(git symbolic-ref HEAD 2> /dev/null) || \
+  ref=$(git rev-parse --short HEAD 2> /dev/null) || return
+  echo ${ref#refs/heads/}
+}
+
+
+function current_repository() {
+  ref=$(git symbolic-ref HEAD 2> /dev/null) || \
+  ref=$(git rev-parse --short HEAD 2> /dev/null) || return
+  echo $(git remote -v | cut -d':' -f 2)
+}
+
+# these aliases take advantage of the previous function
+alias ggpull='git pull origin $(current_branch)'
+alias ggpur='git pull --rebase origin $(current_branch)'
+alias ggpush='git push origin $(current_branch)'
+alias ggpnp='git pull origin $(current_branch) && git push origin $(current_branch)'
+
+# Work In Progress (wip)
+# These features allow to pause a branch development and switch to another one (wip)
+# When you want to go back to work, just unwip it
+#
+# This function return a warning if the current branch is a wip
+function work_in_progress() {
+  if $(git log -n 1 2>/dev/null | grep -q -c "\-\-wip\-\-"); then
+    echo "WIP!!"
+  fi
+}
+
+
 
 # ### From https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally : e.g. gcmr upstream 12345
 # gcmr() { git fetch $1 merge-requests/$2/head:mr-$1-$2 && git checkout mr-$1-$2; }
