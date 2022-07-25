@@ -58,11 +58,57 @@ repo()
 	[[ -f ".gitmodules" ]] && git submodule update --init --recursive
 }
 
+
 brepo()
 {
 	repo "$@"
 	cd ../build
 	rebuild
+}
+
+
+private_clone()
+{
+	clear
+	if [ $# -eq 0 ]; then
+		echo -e "No URL supplied"
+		return
+	fi
+	
+	if [ $# -gt 0 ]; then
+		url="$1"
+		base_name=$(basename ${url})
+		repo_name=${base_name%.*}
+	fi
+
+	if [ $# -gt 1 ]; then
+		privrepo_name="$2"
+	fi
+
+	echo -e "repo: downloading ${base_name}"
+	mkdir -p ${repo_name}/build
+	mkdir -p ${repo_name}/src
+	
+	# add link to repo page
+	link_filename="${repo_name}/${repo_name}.URL"
+	echo "[InternetShortcut]" >${link_filename}
+	echo "URL=${url%.git}" >>${link_filename}
+	echo "IDList=">>${link_filename}
+	echo "HotKey=0">>${link_filename}
+	echo "IconFile=">>${link_filename}
+	echo "IconIndex=0">>${link_filename}
+	
+	#clone repo locally
+	cd ${repo_name}/src
+	git clone --bare ${url} .
+
+	#find cmake root
+	cmakeroot=""
+	if [[ -f ".gitmodules" ]]; then
+		git submodule update --init --recursive
+	fi
+	
+	git push --mirror ${privrepo_name}
 }
 
 
@@ -83,12 +129,23 @@ install()
 	if [[ "${cmakeroot}" != "" ]]; then
 	  echo -e "repo: building repo ${project_name}"
 	  #rm -rf * && clear && cmake -DCMAKE_TOOLCHAIN_FILE="c:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"  -DCMAKE_INSTALL_PREFIX=../install ${cmakeroot}
-	  cmake ${cmakeroot}
-	  cmake --build . --target install --config Release
+	  cmake ${cmakeroot} && cmake --build .
+	  #cmake --build . --target install --config Release
 	fi
 }
 
 
+#Get Branch Commit Differences for Merging
+find_branch_diffs()
+{
+	if [ $# -lt 2 ]; then
+		echo -e "need to pass a source and target branch name"
+		return
+	fi
+	source_repo="$1"
+	target_repo="$2"
+	git log origin/${source_repo}..origin/${target_repo} --oneline --no-merges
+}
 
 # ### From https://docs.gitlab.com/ee/user/project/merge_requests/#checkout-merge-requests-locally : e.g. gcmr upstream 12345
 # gcmr() { git fetch $1 merge-requests/$2/head:mr-$1-$2 && git checkout mr-$1-$2; }

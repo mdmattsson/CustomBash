@@ -2,15 +2,12 @@
 #
 #
 #
-
+export PATH="$PATH:$HOME/bashscripts/oh-my-posh/bin"
+eval "$(oh-my-posh --init --shell bash --config $HOME/bashscripts/oh-my-posh/themes/michael.omp.json)"
 
 # -----------------------------------------------------------------------------
 # constants
 # -----------------------------------------------------------------------------
-readonly WAIT_TIMEOUT_SECONDS=120
-readonly RUN_MODE_DEV="DEV"
-readonly RUN_MODE_PROD="PROD"
-readonly EXA_DEVENV_AETITLE="DEVENV"
 # if using colors with echo, make sure to invoke with "echo -e"
 readonly COLOR_NONE="\033[0m"
 readonly COLOR_NORMAL="\033[0;37m"
@@ -40,6 +37,7 @@ source ~/bashscripts/bs_ssh_functions.sh
 source ~/bashscripts/bs_misc_functions.sh
 source ~/bashscripts/bs_git_functions.sh
 source ~/bashscripts/bs_prompt.sh
+export GIT_PS1_SHOWCOLORHINTS=true # Option for git-prompt.sh to show branch name in color
 
 
 # export GIT_PS1_SHOWCOLORHINTS=true # Option for git-prompt.sh to show branch name in color
