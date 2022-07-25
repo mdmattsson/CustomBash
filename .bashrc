@@ -2,8 +2,8 @@
 #
 #
 #
-export PATH="$PATH:$HOME/bashscripts/oh-my-posh/bin"
-eval "$(oh-my-posh --init --shell bash --config $HOME/bashscripts/oh-my-posh/themes/michael.omp.json)"
+export PATH="$PATH:$HOME/bashscripts/prompt"
+eval "$(posh --init --shell bash --config $HOME/bashscripts/prompt/themes/michael.json)"
 
 # -----------------------------------------------------------------------------
 # constants
