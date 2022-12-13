@@ -35,7 +35,7 @@ download_posh_themes()
 	mkdir -p "${PROMPT_THEME_DIR}"
 	unzip -o -q "${PROMPT_TMP_DIR}/themes.zip" -d "${PROMPT_THEME_DIR}"
 	
-	mv ${PROMPT_DIR}/michael.json ${PROMPT_THEME_DIR}/michael.json
+	mv ${BASHSCRIPT_DIR}/michael.json ${PROMPT_THEME_DIR}/michael.json
 
 }
 
